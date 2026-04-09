@@ -1,6 +1,7 @@
 import SignupPage from "../support/pages/signup";
 
 describe("Cadastro de usuário", () => {
+  
   context("Quando o usuário é novato", () => {
     const user = {
       name: "Begave da Silva",
