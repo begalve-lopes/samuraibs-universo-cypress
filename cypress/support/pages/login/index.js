@@ -1,11 +1,8 @@
 import { el } from "./elements";
-import toast from "../../components/toast";
 
 class LoginPage {
 
-  constructor() {
-    this.toast = toast;
-  }
+  
 
   go() {
     cy.visit("/");
@@ -19,7 +16,7 @@ class LoginPage {
   }
 
   submit() {
-    cy.contains(el.buttonLogin).click();
+    cy.contains(el.signIn).click();
   }
 }
 
