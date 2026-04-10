@@ -1,6 +1,7 @@
 exports.el = {
     title: 'Faça seu login',
-    email: 'input[placeholder$="mail"]',
-    password: 'input[placeholder="Senha"]',
-    signIn: 'Entrar'
+    email: 'input[placeholder$="email"]',
+    password: 'input[placeholder*="senha"]',
+    signIn: 'Entrar',
+    alertError: '.alert-error'
 }

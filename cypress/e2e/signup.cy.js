@@ -35,19 +35,7 @@ describe("Cadastro de usuário", () => {
     };
 
     before(() => {
-      cy.task("deleteUser", user.email).then((resultado) => {
-        console.log(resultado);
-      });
-
-      cy.request({
-        method: "POST",
-        url: "http://localhost:3333/users",
-        body: user,
-      }).then((response) => {
-        expect(response.status).to.eq(200);
-        expect(response.body).to.have.property("name", user.name);
-        expect(response.body).to.have.property("email", user.email);
-      });
+      cy.postUser(user);
     });
 
     it("Não deve cadastrar com email já existente", () => {

@@ -1,8 +1,10 @@
 import { el } from "./elements";
-
+import toast from "../../components/toast"; 
 class LoginPage {
 
-  
+  constructor(){
+    this.toast = toast;
+  }
 
   go() {
     cy.visit("/");
@@ -11,12 +13,16 @@ class LoginPage {
   }
 
   form(user) {
-    cy.get(el.email).type(user.email);
-    cy.get(el.password).type(user.password);
+    cy.get(el.email).clear().type(user.email);
+    cy.get(el.password).clear().type(user.password);
   }
 
   submit() {
     cy.contains(el.signIn).click();
+  }
+
+  alertError(expectedText) {
+    cy.contains(el.alertError, expectedText).should("be.visible");
   }
 }
 
