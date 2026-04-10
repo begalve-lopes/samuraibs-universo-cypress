@@ -62,7 +62,7 @@ describe("Login", () => {
       "ccc11222",
     ];
 
-    before(() => {
+    beforeEach(() => {
       loginPage.go();
     });
 
