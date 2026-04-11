@@ -60,7 +60,7 @@ describe("Cadastro de usuário", () => {
       SignupPage.go();
       SignupPage.form(user);
       SignupPage.submit();
-      SignupPage.alertHaveText("Informe um email válido");
+      SignupPage.alert.haveText("Informe um email válido");
     });
   });
 
@@ -85,12 +85,13 @@ describe("Cadastro de usuário", () => {
     });
 
     afterEach(() => {
-      SignupPage.alertHaveText("Pelo menos 6 caracteres");
+      SignupPage.alert.haveText("Pelo menos 6 caracteres");
     });
   });
 
   context("Quando todos os campos estão vazios", () => {
     const alertMessages = [
+      "Nome é obrigatório",
       "E-mail é obrigatório",
       "Senha é obrigatória",
     ];
@@ -101,8 +102,8 @@ describe("Cadastro de usuário", () => {
     });
 
     alertMessages.forEach((alert) => {
-      it(`Deve exibir mensagem de alerta: ${alert.toLowerCase()}`, () => {
-        SignupPage.alertHaveText(alert);
+      it(`Deve exibir mensagens de alerta para cada campo: ${alert.toLowerCase()}`, () => {
+        SignupPage.alert.haveText(alert);
       });
     });
   });
