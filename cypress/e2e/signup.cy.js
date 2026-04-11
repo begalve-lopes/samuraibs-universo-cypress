@@ -2,22 +2,23 @@ import SignupPage from "../support/pages/signup";
 
 describe("Cadastro de usuário", () => {
   
-  context("Quando o usuário é novato", () => {
-    const user = {
-      name: "Begave da Silva",
-      email: "begave@email.com",
-      password: "123456",
-    };
+  before(function() {
+    cy.fixture('begas').then(function(begas){
+      this.begas = begas;
+    })
+  })
 
-    before(() => {
-      cy.task("deleteUser", user.email).then((resultado) => {
+  context.only("Quando o usuário é novato", () => {
+
+    before(function() {
+      cy.task("deleteUser", this.begas.email).then((resultado) => {
         console.log(resultado);
       });
     });
 
-    it("Deve cadastrar com sucesso", () => {
+    it("Deve cadastrar com sucesso", function() {
       SignupPage.go();
-      SignupPage.form(user);
+      SignupPage.form(this.begas);
       SignupPage.submit();
 
       SignupPage.toast.shouldHaveText(
