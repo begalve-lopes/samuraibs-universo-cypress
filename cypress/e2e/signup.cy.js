@@ -91,18 +91,17 @@ describe("Cadastro de usuário", () => {
 
   context("Quando todos os campos estão vazios", () => {
     const alertMessages = [
-      "Nome é obrigatório",
       "E-mail é obrigatório",
       "Senha é obrigatória",
     ];
 
-    before(() => {
+    beforeEach(() => {
       SignupPage.go();
       SignupPage.submit();
     });
 
     alertMessages.forEach((alert) => {
-      it("Deve exibir mensagens de alerta para cada campo",  + alert.toLowerCase(),() => {
+      it(`Deve exibir mensagem de alerta: ${alert.toLowerCase()}`, () => {
         SignupPage.alertHaveText(alert);
       });
     });

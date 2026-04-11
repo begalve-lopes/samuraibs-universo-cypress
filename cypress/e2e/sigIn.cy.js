@@ -23,7 +23,7 @@ describe("Login", () => {
     });
   });
 
-  context.only("Quando o usuário é bom mas a senha é incorreta", () => {
+  context("Quando o usuário é bom mas a senha é incorreta", () => {
     let user = {
       name: "Begas Silva",
       email: "begas@email.com",
@@ -47,7 +47,7 @@ describe("Login", () => {
     });
   });
 
-  context.only("Quando o formato do email é inválido", () => {
+  context("Quando o formato do email é inválido", () => {
     const emails = [
       "begas.com",
       "@begas.com",
@@ -76,6 +76,21 @@ describe("Login", () => {
         loginPage.form(user);
         loginPage.submit();
         loginPage.alertError("Informe um email válido");
+      });
+    });
+  });
+
+  context.only("Quando não preenche os campos", () => {
+    const alerts = ["E-mail é obrigatório", "Senha é obrigatória"];
+    
+    beforeEach(() => {
+      loginPage.go();
+      loginPage.submit();
+    });
+
+    alerts.forEach((alert) => {
+      it(`deve exibir a mensagem de erro: ${alert.toLowerCase()}`, () => {
+        loginPage.alertError(alert);
       });
     });
   });
