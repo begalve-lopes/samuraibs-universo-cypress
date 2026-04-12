@@ -1,24 +1,25 @@
 import SignupPage from "../support/pages/signup";
 
 describe("Cadastro de usuário", () => {
-  
-  before(function() {
-    cy.fixture('begas').then(function(begas){
-      this.begas = begas;
-    })
-  })
+  before(function () {
+    cy.fixture("signup").then((signup) => {
+      this.success = signup.success;
+      this.email_dup = signup.email_dup;
+      this.email_inv = signup.email_inv;
+      this.short_password = signup.short_password;
+    });
+  });
 
-  context.only("Quando o usuário é novato", () => {
-
-    before(function() {
-      cy.task("deleteUser", this.begas.email).then((resultado) => {
+  context("Quando o usuário é novato", () => {
+    before(function () {
+      cy.task("deleteUser", this.success.email).then((resultado) => {
         console.log(resultado);
       });
     });
 
-    it("Deve cadastrar com sucesso", function() {
+    it("Deve cadastrar com sucesso", function () {
       SignupPage.go();
-      SignupPage.form(this.begas);
+      SignupPage.form(this.success);
       SignupPage.submit();
 
       SignupPage.toast.shouldHaveText(
@@ -28,20 +29,13 @@ describe("Cadastro de usuário", () => {
   });
 
   context("Quando o email já está cadastrado", () => {
-    const user = {
-      name: "Begas Silva",
-      email: "begas@email.com",
-      password: "123456",
-      is_provider: true,
-    };
-
-    before(() => {
-      cy.postUser(user);
+    before(function () {
+      cy.postUser(this.email_dup);
     });
 
-    it("Não deve cadastrar com email já existente", () => {
+    it("Não deve cadastrar com email já existente", function () {
       SignupPage.go();
-      SignupPage.form(user);
+      SignupPage.form(this.email_dup);
       SignupPage.submit();
 
       SignupPage.toast.shouldHaveText(
@@ -50,37 +44,24 @@ describe("Cadastro de usuário", () => {
     });
   });
 
-  context("Quando o email é inválido", () => {
-    const user = {
-      name: "Begas Silva",
-      email: "begasemail.com",
-      password: "123456",
-    };
-
-    it("Deve exibir mensagem de alerta", () => {
+  context("Quando o email é inválido", function () {
+    it("Deve exibir mensagem de alerta", function () {
       SignupPage.go();
-      SignupPage.form(user);
+      SignupPage.form(this.email_inv);
       SignupPage.submit();
       SignupPage.alert.haveText("Informe um email válido");
     });
   });
 
-  context("Quando a senha tem menos de 6 caracteres", () => {
+  context("Quando a senha tem menos de 6 caracteres", function () {
     const passwords = ["1", "12", "123", "1234", "begas"];
 
-    beforeEach(() => {
-      SignupPage.go();
-    });
-
     passwords.forEach((p) => {
-      const user = {
-        name: "Begas Silva",
-        email: "begas@email.com",
-        password: p,
-      };
+      it("Não deve cadastrar a senha : " + p, function () {
+        this.short_password.password = p;
+        SignupPage.go();
 
-      it("Não deve cadastrar a senha : " + p, () => {
-        SignupPage.form(user);
+        SignupPage.form(this.short_password);
         SignupPage.submit();
       });
     });
