@@ -30,6 +30,18 @@ module.exports = defineConfig({
               throw error;
             });
         },
+
+        findToken(email) {
+          return pool
+            .query(
+              "SELECT B.token  FROM users A INNER JOIN user_tokens B ON A.id = B.user_id WHERE A.email = $1 ORDER BY B.created_at;",
+              [email],
+            )
+            .then((result) => ({ token: result.rows[0].token }))
+            .catch((error) => {
+              throw error;
+            });
+        },
       });
 
       return config;
