@@ -24,6 +24,17 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 import moment from "moment";
+import dashPage from "../support/pages/dash";
+import loginPage from "../support/pages/login";
+
+//app action
+Cypress.Commands.add("uiLogin", function (user) {
+  loginPage.go();
+  loginPage.form(user);
+  loginPage.submit();
+
+  dashPage.header.userLoggedIn(user.name);
+});
 
 Cypress.Commands.add("postUser", (user) => {
   return cy
@@ -79,7 +90,7 @@ Cypress.Commands.add("recoveryPass", function (email) {
 
 Cypress.Commands.add("createAppointment", function () {
   let now = new Date();
-  now.setDate(now.getDate() + 3);
+  now.setDate(now.getDate() + 3 );
 
   cy.wrap(now.getDate()).as("appointmentDay");
 
@@ -129,7 +140,7 @@ Cypress.Commands.add("setProviderId", function (provaiderEmail) {
   });
 });
 
-Cypress.Commands.add("apiLogin", function (user) {
+Cypress.Commands.add("apiLogin", function (user, setLocalStorage = false) {
   const payload = {
     email: user.email,
     password: user.password,
@@ -144,5 +155,15 @@ Cypress.Commands.add("apiLogin", function (user) {
     .then(function (response) {
       expect(response.status).to.eq(200);
       return cy.wrap(response.body.token).as("apiToken");
+
+      if (setLocalStorage) {
+        const {token,user } = response.body;
+        window.localStorage.setItem("@Samurai:token", token);
+        window.localStorage.setItem("@Samurai:user", JSON.stringify(user));
+      }
     });
+
+    if(setLocalStorage){
+      cy.visit('/dashboard')
+    }
 });

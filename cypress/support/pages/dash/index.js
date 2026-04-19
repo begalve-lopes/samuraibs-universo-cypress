@@ -11,9 +11,18 @@ class DashPage {
   }
 
   selectDay(day) {
-    cy.get(el.boxDay)
-      .contains(".DayPicker-Day:not(.DayPicker-Day--outside)", day)
-      .click();
+    let today = new Date()
+    let lastDayOffMonth = new Date(today.getFullYear(),today.getMonth() + 1, 0)
+
+    if(today.getDate === lastDayOffMonth.getDate){
+      cy.get(el.nextMonthButton).should('be.visible').click()
+    }else{
+
+    }
+
+    const target = new RegExp(`^${day}$`)
+    cy.contains(el.boxDay, target)
+      .click({ force: true });
   }
 
   appointmentShould(customer) {
