@@ -89,30 +89,29 @@ Cypress.Commands.add("recoveryPass", function (email) {
 });
 
 Cypress.Commands.add("createAppointment", function () {
-  let now = new Date();
-  now.setDate(now.getDate() + 3 );
+  const now = moment().add(4, 'days').toDate(); // Cria uma data 4 dias no futuro
 
-  cy.wrap(now.getDate()).as("appointmentDay");
+  cy.wrap(now).as("appointmentDate");
 
   const date = moment(now).format("YYYY-MM-DD 15:20");
 
-  const payload = {
-    provider_id: this.providerId,
-    date: date,
-  };
-
-  return cy
-    .request({
-      method: "POST",
-      url: "http://localhost:3333/appointments",
-      headers: {
-        Authorization: "Bearer " + this.apiToken,
-      },
-      body: payload,
-    })
-    .then(function (response) {
-      expect(response.status).to.eq(200);
+  cy.get("@apiToken").then((apiToken) => {
+    cy.get("@providerId").then((providerId) => {
+      cy.request({
+        method: "POST",
+        url: "http://localhost:3333/appointments",
+        headers: {
+          Authorization: "Bearer " + apiToken,
+        },
+        body: {
+          provider_id: providerId,
+          date: date,
+        },
+      }).then((response) => {
+        expect(response.status).to.eq(200);
+      });
     });
+  });
 });
 
 Cypress.Commands.add("setProviderId", function (provaiderEmail) {
@@ -127,15 +126,12 @@ Cypress.Commands.add("setProviderId", function (provaiderEmail) {
       })
       .then(function (response) {
         expect(response.status).to.eq(200);
-        console.log(response.body);
 
-        const providerList = response.body;
+        const provider = response.body.find((p) => p.email === provaiderEmail.toLowerCase());
 
-        providerList.forEach(function (provaider) {
-          if (provaider.email === provaiderEmail) {
-            cy.wrap(provaider.id).as("providerId");
-          }
-        });
+        if (!provider) throw new Error(`Provider com email ${provaiderEmail} não encontrado`);
+
+        cy.wrap(provider.id).as("providerId");
       });
   });
 });
@@ -154,16 +150,14 @@ Cypress.Commands.add("apiLogin", function (user, setLocalStorage = false) {
     })
     .then(function (response) {
       expect(response.status).to.eq(200);
-      return cy.wrap(response.body.token).as("apiToken");
 
       if (setLocalStorage) {
-        const {token,user } = response.body;
+        const { token, user } = response.body;
         window.localStorage.setItem("@Samurai:token", token);
         window.localStorage.setItem("@Samurai:user", JSON.stringify(user));
+        cy.visit("/dashboard");
       }
-    });
 
-    if(setLocalStorage){
-      cy.visit('/dashboard')
-    }
+      return cy.wrap(response.body.token).as("apiToken");
+    });
 });

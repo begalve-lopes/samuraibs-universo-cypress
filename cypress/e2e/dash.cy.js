@@ -4,8 +4,6 @@ import { constomer, provider } from "../support/factories/dash";
 
 describe("dashboard", function () {
   context("quando o cliente faz agendamento no app mobile", function () {
-    const now = new Date();
-
     before(function () {
       cy.postUser(provider);
       cy.postUser(constomer);
@@ -23,11 +21,12 @@ describe("dashboard", function () {
       cy.uiLogin(provider);
       //cy.apiLogin(provider,true);
 
-      cy.get("@appointmentDay").then((day) => {
-        dashPage.selectDay(day);
+      dashPage.calendarShouldBeVisible();
+
+      cy.get("@appointmentDate").then((date) => {
+        dashPage.selectDay(date);
       });
 
-      dashPage.calendarShouldBeVisible();
       dashPage.appointmentShould(constomer);
     });
   });
