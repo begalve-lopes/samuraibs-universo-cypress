@@ -18,6 +18,7 @@ describe("dashboard", function () {
     });
 
     it("o mesmo deve ser exibido no dashboard", function () {
+      cy.intercept("GET", /.*\/appointments\/me.*/).as("getAppointmentsForDay");
       cy.uiLogin(provider);
       //cy.apiLogin(provider,true);
 

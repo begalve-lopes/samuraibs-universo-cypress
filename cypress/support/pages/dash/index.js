@@ -34,13 +34,9 @@ class DashPage {
     const targetMonthIndex = targetDate.month();
     const targetYear = targetDate.year();
 
-    // Definimos o intercept antes de começar a navegação ou o clique
-    // Usamos o padrão de busca mais flexível para evitar problemas com portas ou parâmetros
-    cy.intercept("GET", /.*\/appointments\/me.*/).as("getAppointmentsForDay");
-
     const navigateToMonth = () => {
       return cy.get(el.monthYearName).invoke('text').then((monthYearText) => {
-        // Regex para extrair o mês e o ano ignorando preposições como "de"
+        // Regex para extrair o mês e o ano monthYearNameignorando preposições como "de"
         const parts = monthYearText.match(/(\w+)\s+(?:de\s+)?(\d{4})/);
         const currentMonthIndex = this.getMonthIndexFromName(parts[1]);
         const currentYear = parseInt(parts[2]);
