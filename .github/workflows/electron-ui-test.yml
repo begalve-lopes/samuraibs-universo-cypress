@@ -13,7 +13,7 @@ jobs:
         containers: [1, 2, 3]
 
     steps:
-      - name: Checkout test repository
+      - name: Checkout repository
         uses: actions/checkout@v6
 
       - name: Setup Node
@@ -22,38 +22,9 @@ jobs:
           node-version: 20
           cache: yarn
 
-      # Clone the web application repository
-      - name: Checkout Web Application
-        uses: actions/checkout@v6
-        with:
-          repository: qaninja/samuraibs-web  # Substitua pelo owner correto
-          path: web
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Install and build web app
-      - name: Setup Web Application
-        working-directory: web
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          
-      # Start web app in background
-      - name: Start Web Application
-        working-directory: web
-        run: |
-          yarn start &
-          sleep 10
-          
-      # Install test dependencies
-      - name: Install test dependencies
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      # Wait for web app to be ready
-      - name: Wait for Web App
-        run: |
-          npx wait-on http://localhost:3000 --timeout 120000
-          
-      # Run Cypress tests
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
@@ -62,4 +33,3 @@ jobs:
           record: true
           parallel: true
           group: UI-Chrome
-          wait-on: http://localhost:3000
