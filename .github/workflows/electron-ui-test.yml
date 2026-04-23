@@ -22,13 +22,13 @@ jobs:
           node-version: 20
           cache: yarn
 
-      # Clone the web application repository (público)
+      # Clone the web application repository
       - name: Checkout Web Application
         uses: actions/checkout@v6
         with:
           repository: qaninja/samuraibs-web  # Substitua pelo owner correto
           path: web
-          # Não precisa de token para repositórios públicos
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Install and build web app
       - name: Setup Web Application
