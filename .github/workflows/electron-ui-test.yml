@@ -1,4 +1,4 @@
-name: Cypress E2E Tests with Local Web App
+name: Cypress E2E Tests
 
 on:
   workflow_dispatch:
@@ -26,9 +26,9 @@ jobs:
       - name: Checkout Web Application
         uses: actions/checkout@v6
         with:
-          repository: your-username/samuraibs-web  # Change to your web app repo
+          repository: ${{ secrets.WEB_APP_REPO }}
           path: web
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ACCESS_TOKEN }}
 
       # Install and build web app
       - name: Setup Web Application
@@ -53,11 +53,15 @@ jobs:
         run: |
           npx wait-on http://localhost:3000 --timeout 120000
           
-      # Run Cypress tests
+      # Run Cypress tests with database credentials
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
         with:
           record: true
           parallel: true
