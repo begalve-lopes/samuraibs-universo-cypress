@@ -1,4 +1,4 @@
-name: Cypress E2E Tests
+name: Cypress E2E Tests with Local Web App
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
         containers: [1, 2, 3]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout test repository
         uses: actions/checkout@v6
 
       - name: Setup Node
@@ -22,95 +22,44 @@ jobs:
           node-version: 20
           cache: yarn
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      # Clone the web application repository
+      - name: Checkout Web Application
+        uses: actions/checkout@v6
+        with:
+          repository: your-username/samuraibs-web  # Change to your web app repo
+          path: web
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Show package.json scripts
+      # Install and build web app
+      - name: Setup Web Application
+        working-directory: web
         run: |
-          echo "=== Full package.json content ==="
-          cat package.json
-          echo ""
-          echo "=== Available scripts ==="
-          cat package.json | jq -r '.scripts | keys[]' 2>/dev/null || cat package.json | grep -A 50 '"scripts"'
-
-      - name: Try to start and capture output
+          yarn install --frozen-lockfile
+          yarn build
+          
+      # Start web app in background
+      - name: Start Web Application
+        working-directory: web
         run: |
-          # Try starting with different methods and capture everything
-          echo "Attempting to start application..."
-          
-          # Method 1: Direct yarn start with output capture
-          yarn start &> start-output.log &
-          PID=$!
-          
-          echo "Started with PID: $PID"
+          yarn start &
           sleep 10
           
-          # Check if process is still alive
-          if kill -0 $PID 2>/dev/null; then
-            echo "✅ Process is still running"
-            kill $PID 2>/dev/null
-          else
-            echo "❌ Process died immediately"
-          fi
-          
-          echo "=== Output captured ==="
-          cat start-output.log
-          
-          # Method 2: Try to run in foreground briefly to see error
-          echo ""
-          echo "=== Running start command in foreground (5 second timeout) ==="
-          timeout 5 yarn start || echo "Command exited with code: $?"
-          
-      - name: Check for common issues
-        run: |
-          echo "=== Checking for common issues ==="
-          
-          # Check if there's a build step needed
-          if grep -q '"build"' package.json; then
-            echo "Build script found, attempting build..."
-            yarn build || echo "Build failed"
-          fi
-          
-          # Check what's in the current directory
-          echo ""
-          echo "=== Current directory contents ==="
-          ls -la
-          
-          # Check if there's a server.js or index.js
-          echo ""
-          echo "=== Looking for entry points ==="
-          ls -la server.js index.js app.js main.js 2>/dev/null || echo "No common entry points found"
-          
-          # Check for configuration files
-          echo ""
-          echo "=== Configuration files ==="
-          ls -la *.config.js .env* 2>/dev/null || echo "No config files found"
+      # Install test dependencies
+      - name: Install test dependencies
+        run: yarn install --frozen-lockfile
 
-      - name: Try alternative start methods
+      # Wait for web app to be ready
+      - name: Wait for Web App
         run: |
-          echo "=== Trying alternative start methods ==="
+          npx wait-on http://localhost:3000 --timeout 120000
           
-          # Try node directly if there's a server file
-          if [ -f "server.js" ]; then
-            echo "Found server.js, trying to run directly..."
-            timeout 5 node server.js || echo "node server.js failed"
-          fi
-          
-          if [ -f "index.js" ]; then
-            echo "Found index.js, trying to run directly..."
-            timeout 5 node index.js || echo "node index.js failed"
-          fi
-          
-          # Check if it's a Next.js app
-          if [ -f "next.config.js" ]; then
-            echo "Next.js app detected, trying next start..."
-            npx next start &> next-output.log &
-            sleep 5
-            cat next-output.log
-          fi
-          
-          # Check if it's a React app (Create React App)
-          if [ -f "src/index.js" ] || [ -f "src/App.js" ]; then
-            echo "React app detected, trying react-scripts start..."
-            timeout 10 npx react-scripts start || echo "react-scripts start failed"
-          fi
+      # Run Cypress tests
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v7
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        with:
+          record: true
+          parallel: true
+          group: UI-Chrome
+          wait-on: http://localhost:3000
