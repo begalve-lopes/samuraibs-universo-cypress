@@ -22,13 +22,13 @@ jobs:
           node-version: 20
           cache: yarn
 
-      # Clone the web application repository
+      # Clone the web application repository (público)
       - name: Checkout Web Application
         uses: actions/checkout@v6
         with:
-          repository: ${{ secrets.WEB_APP_REPO }}
+          repository: qaninja/samuraibs-web  # Substitua pelo owner correto
           path: web
-          token: ${{ secrets.ACCESS_TOKEN }}
+          # Não precisa de token para repositórios públicos
 
       # Install and build web app
       - name: Setup Web Application
@@ -53,15 +53,11 @@ jobs:
         run: |
           npx wait-on http://localhost:3000 --timeout 120000
           
-      # Run Cypress tests with database credentials
+      # Run Cypress tests
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
         with:
           record: true
           parallel: true
