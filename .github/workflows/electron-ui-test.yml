@@ -23,38 +23,41 @@ jobs:
           cache: yarn
 
       # =========================
-      # INSTALL ALL DEPENDENCIES
+      # INSTALL BACKEND (API)
       # =========================
       - name: Install API dependencies
         working-directory: apps/api
         run: yarn install --frozen-lockfile
 
+      # =========================
+      # INSTALL FRONTEND (WEB)
+      # =========================
       - name: Install Web dependencies
-        working-directory: apps/web
+        working-directory: web
         run: yarn install --frozen-lockfile
 
       # =========================
-      # START BACKEND (PORT 3333)
+      # START API (PORT 3333)
       # =========================
       - name: Start API
         working-directory: apps/api
         run: yarn start &
 
       # =========================
-      # START FRONTEND (PORT 3000)
+      # START WEB (PORT 3000)
       # =========================
       - name: Start Web App
-        working-directory: apps/web
+        working-directory: web
         run: yarn start &
 
       # =========================
-      # WAIT FOR WEB
+      # WAIT WEB
       # =========================
       - name: Wait for WebApp
         run: npx wait-on http://localhost:3000
 
       # =========================
-      # CYPRESS TESTS
+      # CYPRESS
       # =========================
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
@@ -65,4 +68,3 @@ jobs:
           parallel: true
           group: UI-Chrome
           wait-on: http://localhost:3000
-          start: ""
