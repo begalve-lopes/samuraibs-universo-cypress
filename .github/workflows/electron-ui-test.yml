@@ -25,14 +25,45 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Build application
+        run: |
+          # Try common build commands
+          if grep -q '"build"' package.json; then
+            echo "Running build script..."
+            yarn build
+          else
+            echo "No build script found"
+          fi
+
       - name: Start application
         run: |
-          yarn start &
-          sleep 10
-
-      - name: Wait for application
-        run: npx wait-on http://localhost:3000 --timeout 120000
-
+          # Try different start commands
+          if grep -q '"start:prod"' package.json; then
+            yarn start:prod &
+          elif grep -q '"serve"' package.json; then
+            yarn serve &
+          elif grep -q '"dev"' package.json; then
+            yarn dev &
+          else
+            yarn start &
+          fi
+          
+          # Wait for startup
+          sleep 20
+          
+          # Keep process running and show logs
+          tail -f nohup.out 2>/dev/null &
+          
+      - name: Verify application is running
+        run: |
+          # Check for running node processes
+          echo "Node processes:"
+          ps aux | grep node | grep -v grep
+          
+          # Test the endpoint
+          echo "Testing endpoint..."
+          curl -I http://localhost:3000 || echo "Port 3000 not responding"
+          
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
@@ -41,4 +72,6 @@ jobs:
           record: true
           parallel: true
           group: UI-Chrome
+          start: yarn start
           wait-on: http://localhost:3000
+          wait-on-timeout: 120
