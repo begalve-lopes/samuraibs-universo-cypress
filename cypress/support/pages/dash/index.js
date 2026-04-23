@@ -76,14 +76,14 @@ class DashPage {
       cy.get("@selectedDayElement").should(
         "have.class",
         "DayPicker-Day--selected",
-        { timeout: 7000 },
+        
       );
     });
   }
 
   appointmentShould(customer) {
     // Removemos a restrição de "div" para encontrar o texto em qualquer elemento da lista
-    cy.contains(customer.name, { timeout: 7000 }).should("be.visible");
+    cy.contains(customer.name).should("be.visible");
   }
 }
 

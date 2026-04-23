@@ -21,6 +21,8 @@ module.exports = defineConfig({
 
     viewportHeight: 900,
     viewportWidth: 1440,
+    defaultCommandTimeout: 30000,
+
 
     setupNodeEvents(on, config) {
       on("task", {
