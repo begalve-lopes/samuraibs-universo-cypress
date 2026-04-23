@@ -28,12 +28,8 @@ jobs:
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL }}
         with:
-          record: true
-          parallel: true
-          group: UI-Chrome
           config: baseUrl=${{ secrets.CYPRESS_BASE_URL }}
           wait-on: ${{ secrets.CYPRESS_BASE_URL }}
           wait-on-timeout: 300
