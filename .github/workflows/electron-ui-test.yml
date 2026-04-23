@@ -16,57 +16,44 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Debug structure
+        run: |
+          ls -la
+          ls -la apps/ 2>/dev/null || echo "No apps folder"
+          ls -la web/ 2>/dev/null || echo "No web folder"
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: yarn
 
-      # =========================
-      # INSTALL ROOT DEPENDENCIES
-      # =========================
-      - name: Install root dependencies
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      # =========================
-      # INSTALL API DEPENDENCIES (if apps/api exists)
-      # =========================
-      - name: Install API dependencies
-        if: hashFiles('apps/api/package.json') != ''
-        working-directory: apps/api
-        run: yarn install --frozen-lockfile
-
-      # =========================
-      # INSTALL WEB DEPENDENCIES
-      # =========================
-      - name: Install Web dependencies
-        if: hashFiles('web/package.json') != ''
-        working-directory: web
-        run: yarn install --frozen-lockfile
-
-      # =========================
-      # START SERVICES
-      # =========================
       - name: Start API
-        if: hashFiles('apps/api/package.json') != ''
-        working-directory: apps/api
-        run: yarn start &
+        run: |
+          # Try different possible start commands
+          if grep -q '"start":' package.json; then
+            yarn start &
+          elif [ -f "server.js" ]; then
+            node server.js &
+          else
+            echo "No API start script found"
+          fi
 
       - name: Start Web App
-        working-directory: web
-        run: yarn start &
-
-      # =========================
-      # WAIT FOR SERVICES
-      # =========================
-      - name: Wait for services
         run: |
-          npx wait-on http://localhost:3000
-          npx wait-on http://localhost:3333 --timeout 60000 || true
+          if [ -d "web" ]; then
+            cd web && yarn start &
+          else
+            echo "Web directory not found"
+            exit 1
+          fi
 
-      # =========================
-      # CYPRESS TESTS
-      # =========================
+      - name: Wait for services
+        run: npx wait-on http://localhost:3000 --timeout 120000
+
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
@@ -76,4 +63,3 @@ jobs:
           parallel: true
           group: UI-Chrome
           wait-on: http://localhost:3000
-          wait-on-timeout: 120
