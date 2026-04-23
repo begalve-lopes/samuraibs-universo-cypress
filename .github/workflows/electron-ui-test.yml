@@ -16,12 +16,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Debug structure
-        run: |
-          ls -la
-          ls -la apps/ 2>/dev/null || echo "No apps folder"
-          ls -la web/ 2>/dev/null || echo "No web folder"
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -31,27 +25,12 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Start API
+      - name: Start application
         run: |
-          # Try different possible start commands
-          if grep -q '"start":' package.json; then
-            yarn start &
-          elif [ -f "server.js" ]; then
-            node server.js &
-          else
-            echo "No API start script found"
-          fi
+          yarn start &
+          sleep 10
 
-      - name: Start Web App
-        run: |
-          if [ -d "web" ]; then
-            cd web && yarn start &
-          else
-            echo "Web directory not found"
-            exit 1
-          fi
-
-      - name: Wait for services
+      - name: Wait for application
         run: npx wait-on http://localhost:3000 --timeout 120000
 
       - name: Run Cypress tests
