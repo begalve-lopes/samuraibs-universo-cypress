@@ -1,18 +1,41 @@
 name: Electron UI Tests
 
-on: 
-  workflow_dispatch: 
+on:
+  workflow_dispatch:
 
 jobs:
   electron-ui-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        containers: [1]
 
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: List files project
-        run: ls -l
+      - name: Download build folder
+        uses: actions/download-artifact@v7
+        with:
+          name: build
 
-     
-  
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Start app
+        run: yarn start &
+
+      - name: Wait for app
+        run: npx wait-on http://localhost:3000
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v7
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        with:
+          record: true
+          parallel: true
+          group: UI-Chrome
+          start: yarn start
