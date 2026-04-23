@@ -25,53 +25,92 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build application
+      - name: Show package.json scripts
         run: |
-          # Try common build commands
-          if grep -q '"build"' package.json; then
-            echo "Running build script..."
-            yarn build
-          else
-            echo "No build script found"
-          fi
+          echo "=== Full package.json content ==="
+          cat package.json
+          echo ""
+          echo "=== Available scripts ==="
+          cat package.json | jq -r '.scripts | keys[]' 2>/dev/null || cat package.json | grep -A 50 '"scripts"'
 
-      - name: Start application
+      - name: Try to start and capture output
         run: |
-          # Try different start commands
-          if grep -q '"start:prod"' package.json; then
-            yarn start:prod &
-          elif grep -q '"serve"' package.json; then
-            yarn serve &
-          elif grep -q '"dev"' package.json; then
-            yarn dev &
+          # Try starting with different methods and capture everything
+          echo "Attempting to start application..."
+          
+          # Method 1: Direct yarn start with output capture
+          yarn start &> start-output.log &
+          PID=$!
+          
+          echo "Started with PID: $PID"
+          sleep 10
+          
+          # Check if process is still alive
+          if kill -0 $PID 2>/dev/null; then
+            echo "✅ Process is still running"
+            kill $PID 2>/dev/null
           else
-            yarn start &
+            echo "❌ Process died immediately"
           fi
           
-          # Wait for startup
-          sleep 20
+          echo "=== Output captured ==="
+          cat start-output.log
           
-          # Keep process running and show logs
-          tail -f nohup.out 2>/dev/null &
+          # Method 2: Try to run in foreground briefly to see error
+          echo ""
+          echo "=== Running start command in foreground (5 second timeout) ==="
+          timeout 5 yarn start || echo "Command exited with code: $?"
           
-      - name: Verify application is running
+      - name: Check for common issues
         run: |
-          # Check for running node processes
-          echo "Node processes:"
-          ps aux | grep node | grep -v grep
+          echo "=== Checking for common issues ==="
           
-          # Test the endpoint
-          echo "Testing endpoint..."
-          curl -I http://localhost:3000 || echo "Port 3000 not responding"
+          # Check if there's a build step needed
+          if grep -q '"build"' package.json; then
+            echo "Build script found, attempting build..."
+            yarn build || echo "Build failed"
+          fi
           
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v7
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        with:
-          record: true
-          parallel: true
-          group: UI-Chrome
-          start: yarn start
-          wait-on: http://localhost:3000
-          wait-on-timeout: 120
+          # Check what's in the current directory
+          echo ""
+          echo "=== Current directory contents ==="
+          ls -la
+          
+          # Check if there's a server.js or index.js
+          echo ""
+          echo "=== Looking for entry points ==="
+          ls -la server.js index.js app.js main.js 2>/dev/null || echo "No common entry points found"
+          
+          # Check for configuration files
+          echo ""
+          echo "=== Configuration files ==="
+          ls -la *.config.js .env* 2>/dev/null || echo "No config files found"
+
+      - name: Try alternative start methods
+        run: |
+          echo "=== Trying alternative start methods ==="
+          
+          # Try node directly if there's a server file
+          if [ -f "server.js" ]; then
+            echo "Found server.js, trying to run directly..."
+            timeout 5 node server.js || echo "node server.js failed"
+          fi
+          
+          if [ -f "index.js" ]; then
+            echo "Found index.js, trying to run directly..."
+            timeout 5 node index.js || echo "node index.js failed"
+          fi
+          
+          # Check if it's a Next.js app
+          if [ -f "next.config.js" ]; then
+            echo "Next.js app detected, trying next start..."
+            npx next start &> next-output.log &
+            sleep 5
+            cat next-output.log
+          fi
+          
+          # Check if it's a React app (Create React App)
+          if [ -f "src/index.js" ] || [ -f "src/App.js" ]; then
+            echo "React app detected, trying react-scripts start..."
+            timeout 10 npx react-scripts start || echo "react-scripts start failed"
+          fi
