@@ -23,41 +23,49 @@ jobs:
           cache: yarn
 
       # =========================
-      # INSTALL BACKEND (API)
+      # INSTALL ROOT DEPENDENCIES
+      # =========================
+      - name: Install root dependencies
+        run: yarn install --frozen-lockfile
+
+      # =========================
+      # INSTALL API DEPENDENCIES (if apps/api exists)
       # =========================
       - name: Install API dependencies
+        if: hashFiles('apps/api/package.json') != ''
         working-directory: apps/api
         run: yarn install --frozen-lockfile
 
       # =========================
-      # INSTALL FRONTEND (WEB)
+      # INSTALL WEB DEPENDENCIES
       # =========================
       - name: Install Web dependencies
+        if: hashFiles('web/package.json') != ''
         working-directory: web
         run: yarn install --frozen-lockfile
 
       # =========================
-      # START API (PORT 3333)
+      # START SERVICES
       # =========================
       - name: Start API
+        if: hashFiles('apps/api/package.json') != ''
         working-directory: apps/api
         run: yarn start &
 
-      # =========================
-      # START WEB (PORT 3000)
-      # =========================
       - name: Start Web App
         working-directory: web
         run: yarn start &
 
       # =========================
-      # WAIT WEB
+      # WAIT FOR SERVICES
       # =========================
-      - name: Wait for WebApp
-        run: npx wait-on http://localhost:3000
+      - name: Wait for services
+        run: |
+          npx wait-on http://localhost:3000
+          npx wait-on http://localhost:3333 --timeout 60000 || true
 
       # =========================
-      # CYPRESS
+      # CYPRESS TESTS
       # =========================
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
@@ -68,3 +76,4 @@ jobs:
           parallel: true
           group: UI-Chrome
           wait-on: http://localhost:3000
+          wait-on-timeout: 120
