@@ -25,7 +25,13 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      # Cypress já gerencia o start/wait internamente
+      # ⚠️ Só mantenha isso se realmente existir "dev" no package.json
+      - name: Start app
+        run: yarn dev &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000
+
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
@@ -34,4 +40,4 @@ jobs:
           record: true
           parallel: true
           group: UI-Chrome
-          component: false
+          wait-on: http://localhost:3000
