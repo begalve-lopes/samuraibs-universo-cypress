@@ -34,5 +34,6 @@ jobs:
           record: true
           parallel: true
           group: UI-Chrome
+          config: baseUrl=${{ secrets.CYPRESS_BASE_URL }}
           wait-on: ${{ secrets.CYPRESS_BASE_URL }}
           wait-on-timeout: 300
