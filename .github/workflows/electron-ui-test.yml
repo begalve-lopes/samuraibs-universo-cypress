@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        containers: [1, 2, 3, 4, 5]
+        containers: [1]
 
     steps:
       - name: Checkout repository
@@ -25,6 +25,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      # Cypress já gerencia o start/wait internamente
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
@@ -33,6 +34,4 @@ jobs:
           record: true
           parallel: true
           group: UI-Chrome
-          start: yarn start
-          wait-on: http://localhost:3000
-          wait-on-timeout: 120
+          component: false
