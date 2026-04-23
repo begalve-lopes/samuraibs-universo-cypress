@@ -1,16 +1,16 @@
-name: Electron UI Tests
+name: Cypress E2E Tests
 
 on:
   workflow_dispatch:
 
 jobs:
-  electron-ui-test:
+  cypress-tests:
     runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
       matrix:
-        containers: [1]
+        containers: [1, 2, 3]
 
     steps:
       - name: Checkout repository
@@ -22,16 +22,40 @@ jobs:
           node-version: 20
           cache: yarn
 
-      - name: Install dependencies
+      # =========================
+      # INSTALL ALL DEPENDENCIES
+      # =========================
+      - name: Install API dependencies
+        working-directory: apps/api
         run: yarn install --frozen-lockfile
 
-      # ⚠️ Só mantenha isso se realmente existir "dev" no package.json
-      - name: Start app
-        run: yarn dev &
+      - name: Install Web dependencies
+        working-directory: apps/web
+        run: yarn install --frozen-lockfile
 
-      - name: Wait for server
+      # =========================
+      # START BACKEND (PORT 3333)
+      # =========================
+      - name: Start API
+        working-directory: apps/api
+        run: yarn start &
+
+      # =========================
+      # START FRONTEND (PORT 3000)
+      # =========================
+      - name: Start Web App
+        working-directory: apps/web
+        run: yarn start &
+
+      # =========================
+      # WAIT FOR WEB
+      # =========================
+      - name: Wait for WebApp
         run: npx wait-on http://localhost:3000
 
+      # =========================
+      # CYPRESS TESTS
+      # =========================
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
@@ -41,3 +65,4 @@ jobs:
           parallel: true
           group: UI-Chrome
           wait-on: http://localhost:3000
+          start: ""
