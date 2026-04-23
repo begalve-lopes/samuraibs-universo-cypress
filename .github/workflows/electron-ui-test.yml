@@ -4,29 +4,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  electron-ui-test:
     runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        containers: [1, 2, 3, 4, 5]
+
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - run: yarn install
-      - run: yarn build
-
-      - uses: actions/upload-artifact@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          name: build
-          path: dist/
+          node-version: 20
+          cache: yarn
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
-      - name: Start app
+      - name: Start application
         run: yarn start &
 
-      - name: Wait for app
+      - name: Wait for app to be ready
         run: npx wait-on http://localhost:3000
 
-      - name: Cypress run
+      - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
@@ -35,3 +40,5 @@ jobs:
           parallel: true
           group: UI-Chrome
           start: yarn start
+          wait-on: http://localhost:3000
+          wait-on-timeout: 120
